@@ -10,7 +10,7 @@ phase = 0.0
 
 def callback(outdata, frames, time, status):
     global phase, frequency, target_frequency
-    
+
     frequency += (target_frequency - frequency) * 0.1
 
     t = (np.arange(frames) + phase) / sample_rate
