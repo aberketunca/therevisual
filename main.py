@@ -1,14 +1,19 @@
 import cv2
 import mediapipe as mp
+import audio
 
-mp_hands = mp.solutions.hands
+BaseOptions = mp.tasks.BaseOptions
+HandLandmarker = mp.tasks.vision.HandLandmarker
+HandLandmarkerOptions = mp.tasks.vision.HandLandmarkerOptions
+VisionRunningMode = mp.tasks.vision.RunningMode
 
-hands = mp_hands.Hands(
-    max_num_hands=2,
-    min_detection_confidence=0.7,
+options = HandLandmarkerOptions(
+    base_options=BaseOptions(model_asset_path="hand_landmarker.task"),
+    running_mode=VisionRunningMode.IMAGE,
+    num_hands=2,
 )
 
-drawer = mp.solutions.drawing_utils
+landmarker = HandLandmarker.create_from_options(options)
 
 cap = cv2.VideoCapture(0)
 
@@ -21,16 +26,24 @@ while True:
 
     rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-    result = hands.process(rgb)
+    mp_image = mp.Image(
+        image_format=mp.ImageFormat.SRGB,
+        data=rgb
+    )
 
-    if result.multi_hand_landmarks:
+    result = landmarker.detect(mp_image)
 
-        for hand in result.multi_hand_landmarks:
+    if len(result.hand_landmarks) > 0:
+        print("Hands detected:", len(result.hand_landmarks))
 
-            drawer.draw_landmarks(
-                frame,
-                hand,
-                mp_hands.HAND_CONNECTIONS,
+        for hand in result.hand_landmarks:
+            wrist = result.hand_landmarks[0][0]
+
+
+            audio.target_frequency = 220 + (1.0 - wrist.y) * 660
+
+            print(
+                f"x={wrist.x:.2f}  y={wrist.y:.2f}"
             )
 
     cv2.imshow("Visual Theremin", frame)
