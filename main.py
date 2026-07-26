@@ -22,43 +22,51 @@ while True:
 
     hands, frame = detector.findHands(frame, draw=True)
 
-    audio.target_volume = 0.0
+    audio.target_volume = 0.2
 
     if hands:
 
+        # Sort by horizontal position
         hands.sort(key=lambda h: h["center"][0])
 
-        leftHand = hands[0]
+        # ---------- Pitch ----------
+        # If only one hand exists, it controls pitch.
+        # If two hands exist, the rightmost controls pitch.
 
-        x, y, _ = leftHand["lmList"][0]
+        pitchHand = hands[-1]
 
-        audio.target_volume = max(0.0, min(0.3, 0.3 * (1 - y / 480)))
+        px, py, _ = pitchHand["lmList"][8]
+
+        audio.target_frequency = 220 + (1.0 - py / 480.0) * 660.0
 
         cv2.putText(
             frame,
-            f"Volume: {audio.target_volume:.2f}",
+            f"Pitch: {audio.target_frequency:.0f} Hz",
             (20, 40),
             cv2.FONT_HERSHEY_SIMPLEX,
             1,
-            (255, 255, 0),
+            (0, 255, 0),
             2,
         )
 
-        if len(hands) > 1:
+        # ---------- Cutoff ----------
+        # Only active when two hands are visible.
 
-            rightHand = hands[1]
+        if len(hands) == 2:
 
-            x, y, _ = rightHand["lmList"][0]
+            cutoffHand = hands[0]
 
-            audio.target_frequency = 220 + (1 - y / 480) * 660
+            cx, cy, _ = cutoffHand["lmList"][8]
+
+            audio.target_cutoff = cx / 640.0
 
             cv2.putText(
                 frame,
-                f"Pitch: {audio.target_frequency:.0f} Hz",
+                f"Cutoff: {audio.target_cutoff:.2f}",
                 (20, 80),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 1,
-                (0, 255, 0),
+                (255, 255, 0),
                 2,
             )
 
