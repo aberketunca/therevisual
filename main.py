@@ -1,73 +1,68 @@
-import time
 import cv2
-import mediapipe as mp
 import audio
 
-BaseOptions = mp.tasks.BaseOptions
-HandLandmarker = mp.tasks.vision.HandLandmarker
-HandLandmarkerOptions = mp.tasks.vision.HandLandmarkerOptions
-VisionRunningMode = mp.tasks.vision.RunningMode
+from cvzone.HandTrackingModule import HandDetector
 
-options = HandLandmarkerOptions(
-    base_options=BaseOptions(
-        model_asset_path="hand_landmarker.task"
-    ),
-    running_mode=VisionRunningMode.VIDEO,
-    num_hands=2,
+detector = HandDetector(
+    maxHands=2,
+    detectionCon=0.7,
 )
 
-landmarker = HandLandmarker.create_from_options(options)
-
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
 
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 
 while True:
 
-    ret, frame = cap.read()
+    success, frame = cap.read()
 
-    if not ret:
+    if not success:
         break
 
-    rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    hands, frame = detector.findHands(frame, draw=True)
 
-    mp_image = mp.Image(
-        image_format=mp.ImageFormat.SRGB,
-        data=rgb,
-    )
+    audio.target_volume = 0.0
 
-    timestamp_ms = int(time.monotonic() * 1000)
+    if hands:
 
-    result = landmarker.detect_for_video(
-        mp_image,
-        timestamp_ms,
-    )
+        hands.sort(key=lambda h: h["center"][0])
 
-    if result.hand_landmarks:
+        leftHand = hands[0]
 
-        wrist = result.hand_landmarks[0][0]
+        x, y, _ = leftHand["lmList"][0]
 
-        target = 220 + (1.0 - wrist.y) * 660
-
-        audio.target_frequency = target
-
-        x = int(wrist.x * frame.shape[1])
-        y = int(wrist.y * frame.shape[0])
-
-        cv2.circle(frame, (x, y), 10, (0, 255, 0), -1)
+        audio.target_volume = max(0.0, min(0.3, 0.3 * (1 - y / 480)))
 
         cv2.putText(
             frame,
-            f"{target:.1f} Hz",
+            f"Volume: {audio.target_volume:.2f}",
             (20, 40),
             cv2.FONT_HERSHEY_SIMPLEX,
             1,
-            (0, 255, 0),
+            (255, 255, 0),
             2,
         )
 
-    cv2.imshow("Visual Theremin", frame)
+        if len(hands) > 1:
+
+            rightHand = hands[1]
+
+            x, y, _ = rightHand["lmList"][0]
+
+            audio.target_frequency = 220 + (1 - y / 480) * 660
+
+            cv2.putText(
+                frame,
+                f"Pitch: {audio.target_frequency:.0f} Hz",
+                (20, 80),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                1,
+                (0, 255, 0),
+                2,
+            )
+
+    cv2.imshow("ThereVisual", frame)
 
     if cv2.waitKey(1) & 0xFF == ord("q"):
         break

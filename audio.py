@@ -3,30 +3,45 @@ import sounddevice as sd
 
 sample_rate = 44100
 
+phase = 0.0
 frequency = 440.0
 target_frequency = 440.0
-phase = 0.0
+
+volume = 0.0
+target_volume = 0.0
 
 
 def callback(outdata, frames, time, status):
-    global phase, frequency, target_frequency
+    global phase
+    global frequency
+    global target_frequency
+    global volume
+    global target_volume
 
-    frequency += (target_frequency - frequency) * 0.1
+    output = np.zeros(frames)
 
-    t = (np.arange(frames) + phase) / sample_rate
+    for i in range(frames):
 
-    outdata[:, 0] = 0.2 * np.sin(2 * np.pi * frequency * t)
+        frequency += 0.001 * (target_frequency - frequency)
+        volume += 0.003 * (target_volume - volume)
+
+        phase += 2 * np.pi * frequency / sample_rate
+
+        if phase > 2 * np.pi:
+            phase -= 2 * np.pi
+
+        output[i] = volume * np.sin(phase)
+
+    outdata[:, 0] = output
 
     if outdata.shape[1] > 1:
-        outdata[:, 1] = outdata[:, 0]
-
-    phase += frames
+        outdata[:, 1] = output
 
 
 stream = sd.OutputStream(
+    samplerate=sample_rate,
     channels=2,
     callback=callback,
-    samplerate=sample_rate,
 )
 
 stream.start()
