@@ -28,7 +28,7 @@ def callback(outdata, frames, time, status):
 
         frequency += 0.001 * (target_frequency - frequency)
         volume += 0.003 * (target_volume - volume)
-        cutoff += 0.01 * (target_cutoff - cutoff)
+        cutoff += 0.015 * (target_cutoff - cutoff)
 
         phase += 2 * np.pi * frequency / sample_rate
 
