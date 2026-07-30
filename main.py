@@ -1,3 +1,5 @@
+import math
+
 import cv2
 import audio
 
@@ -58,8 +60,10 @@ while True:
 
             cx, cy, _ = cutoffHand["lmList"][8]
 
-            audio.target_cutoff = cx / 640.0
+            norm = cx / 640.0
 
+            audio.target_cutoff = 40.0 * math.pow(300.0, norm)
+            
             cv2.putText(
                 frame,
                 f"Cutoff: {audio.target_cutoff:.2f}",
