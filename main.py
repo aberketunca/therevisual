@@ -1,10 +1,16 @@
 import math
 
+
 import cv2
 import audio
 import music
+import gesture
 
 from cvzone.HandTrackingModule import HandDetector
+
+
+
+
 
 
 current_scale = "Major"
@@ -64,6 +70,29 @@ while True:
         # ---------------- Pitch ----------------
 
         pitchHand = hands[-1]
+        g = gesture.detect(detector, pitchHand)
+
+        if g is not None:
+            cv2.putText(
+                frame,
+                f"Gesture: {g}",
+                (20,120),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.8,
+                (255,255,255),
+                2,
+            )
+
+        if g == "pinch":
+            cv2.putText(
+                frame,
+                "PINCH",
+                (20,160),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.8,
+                (0,255,255),
+                2,
+            )
 
         px, py, _ = pitchHand["lmList"][8]
 
