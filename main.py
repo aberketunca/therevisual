@@ -28,12 +28,11 @@ while True:
 
     if hands:
 
-        # Sort by horizontal position
+        # Sort by horizontal 
         hands.sort(key=lambda h: h["center"][0])
 
-        # ---------- Pitch ----------
-        # If only one hand exists, it controls pitch.
-        # If two hands exist, the rightmost controls pitch.
+        #  pitch
+
 
         pitchHand = hands[-1]
 
@@ -51,8 +50,7 @@ while True:
             2,
         )
 
-        # ---------- Cutoff ----------
-        # Only active when two hands are visible.
+        # cutoff (left hand)
 
         if len(hands) == 2:
 
