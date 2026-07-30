@@ -28,6 +28,7 @@ def mouse(event, x, y, flags, param):
             if x1 <= x <= x2 and y1 <= y <= y2:
                 current_scale = name
                 print("Scale:", current_scale)
+    print(event)
 
 
 detector = HandDetector(
@@ -142,7 +143,7 @@ while True:
 
     cv2.imshow("ThereVisual", frame)
 
-    if cv2.waitKey(1) & 0xFF == ord("q"):
+    if cv2.waitKey(10) & 0xFF == ord("q"):
         break
 
 cap.release()
